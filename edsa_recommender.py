@@ -41,6 +41,19 @@ from recommenders.content_based import content_model
 title_list = load_movie_titles('resources/data/movies.csv')
 movies_df = pd.read_csv('resources/data/rated_movies.csv')
 # App declaration
+
+def extract_year_from_title(title):
+    year_start = title.find("(") + 1
+    year_end = title.find(")")
+    return title[year_start:year_end]
+
+
+# Extract year from the title and create a new "year" column
+movies_df['year'] = movies_df['title'].apply(extract_year_from_title)
+
+# Convert the "year" column to integer type
+movies_df['year'] = pd.to_numeric(movies_df['year'], errors='coerce')
+
 def main():
 
     # DO NOT REMOVE the 'Recommender System' option below, however,
@@ -104,16 +117,18 @@ def main():
 
         # Sidebar - Movie Search
         genre = st.sidebar.text_input('Enter a Genre (e.g., Action, Drama, Comedy):')
-
+        title = st.sidebar.text_input('Enter a Movie Title:')
             # Function to filter movies based on user criteria
-        def filter_movies(df, genre=None):
+        def filter_movies(df, genre=None, title=None):
             if genre:
                 df = df[df['genres'].str.contains(genre, case=False)]
+            if title:
+                df = df[df['title'].str.contains(title, case=False)]
             df = df.sort_values(by='rating', ascending=False)
             return df
 
             # Filter the movies based on user criteria
-        filtered_movies = filter_movies(movies_df, genre)
+        filtered_movies = filter_movies(movies_df, genre=genre, title=title)
 
             # Display the filtered movie results
         st.table(filtered_movies[['title', 'genres', 'rating']])
@@ -139,28 +154,40 @@ def main():
     if page_selection == "Solution Overview":
         st.title("Solution Overview")
         st.image('resources/imgs/header_image.jpg',use_column_width=True)
-        st.write("""
-    **Solution Overview: Movie Recommender App**
+        
+        # Button to expand/collapse the "Movie Recommender App" subsection
+        if st.button("Movie Recommender App"):
+            st.write("""
+        **Solution Overview: Movie Recommender App**
 
-    Our Movie Recommender App is an intelligent system designed to help users discover their ideal movies by leveraging the power of collaborative-based and content-based filtering techniques. The primary goal of this app is to provide personalized movie recommendations based on user preferences and movie features.
+        Our Movie Recommender App is an intelligent system designed to help users discover their ideal movies by leveraging the power of collaborative-based and content-based filtering techniques. The primary goal of this app is to provide personalized movie recommendations based on user preferences and movie features.
+        """)
 
-    **Key Features:**
+        if st.button("Key Features"):
+            st.write("""
+        **Key Features:**
 
-    1. **User-Friendly Interface:** The app offers a simple and intuitive user interface. Users can easily navigate through different sections, including "Recommender System," "Movie Search," and "Top Rated Movies."
+        1. **User-Friendly Interface:** The app offers a simple and intuitive user interface. Users can easily navigate through different sections, including "Recommender System," "Movie Search," and "Top Rated Movies."
 
-    2. **Recommender System:** Our app presents two advanced recommendation algorithms: Collaborative-Based Filtering and Content-Based Filtering. Users can input their three favorite movies, and the system will generate a list of movie recommendations tailored to their unique tastes.
+        2. **Recommender System:** Our app presents two advanced recommendation algorithms: Collaborative-Based Filtering and Content-Based Filtering. Users can input their three favorite movies, and the system will generate a list of movie recommendations tailored to their unique tastes.
 
-    3. **Movie Search:** Users have the freedom to search for specific movies or explore movies by genres. The app efficiently filters movies based on user-provided genre criteria, allowing users to quickly discover movies that match their interests.
+        3. **Movie Search:** Users have the freedom to search for specific movies or explore movies by genres. The app efficiently filters movies based on user-provided genre criteria, allowing users to quickly discover movies that match their interests.
 
-    4. **Top Rated Movies:** Our app presents a list of top-rated movies based on user ratings or other metrics. Users can adjust the number of movies displayed to explore the best movies based on their preferences.
+        4. **Top Rated Movies:** Our app presents a list of top-rated movies based on user ratings or other metrics. Users can adjust the number of movies displayed to explore the best movies based on their preferences.
+        """)
 
-    **How It Works:**
+        if st.button("How It Works"):
+            st.write("""
+        **How It Works:**
 
-    1. **Collaborative-Based Filtering:** This approach builds user-item interactions to uncover patterns in user preferences. By analyzing how similar users have rated movies, the system identifies movies that align with a user's taste. The resulting recommendations are personalized and considerate of user behavior.
+        1. **Collaborative-Based Filtering:** This approach builds user-item interactions to uncover patterns in user preferences. By analyzing how similar users have rated movies, the system identifies movies that align with a user's taste. The resulting recommendations are personalized and considerate of user behavior.
 
-    2. **Content-Based Filtering:** The content-based approach focuses on movie features such as genres and tags. By comparing movie attributes with user preferences, the app suggests movies that align with a user's previous movie choices.
-
-    **Benefits:**
+        2. **Content-Based Filtering:** The content-based approach focuses on movie features such as genres and tags. By comparing movie attributes with user preferences, the app suggests movies that align with a user's previous movie choices.
+        """)
+    
+        if st.button("Benefits"):
+            st.write("""
+        **Benefits:**
 
     1. **Personalized Recommendations:** Our app provides personalized movie recommendations, ensuring that users receive tailored suggestions based on their individual interests.
 
@@ -168,34 +195,22 @@ def main():
 
     3. **Enhanced Movie Search:** The movie search feature enables users to find movies based on specific genres, empowering them to explore movies relevant to their mood or interests.
 
+        """)
+                     
+        st.write("""Our Movie Recommender App is committed to delivering an engaging and dynamic movie discovery experience for users. We continuously strive to improve our recommendation algorithms and user interface to ensure movie enthusiasts find their perfect watchlist with ease. Enjoy exploring the world of cinema with our smart and sophisticated movie recommender system!
+    """) 
     
-    Our Movie Recommender App is committed to delivering an engaging and dynamic movie discovery experience for users. We continuously strive to improve our recommendation algorithms and user interface to ensure movie enthusiasts find their perfect watchlist with ease. Enjoy exploring the world of cinema with our smart and sophisticated movie recommender system!
-    """)
+    
 
     # You may want to add more sections here for aspects such as an EDA,
     # or to provide your business pitch.
 
 #--------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------
-    if page_selection == "EDA":
-        st.title("Exploratory Data Analysis (EDA)")
-
-        # Display summary statistics or any other EDA you want to show
-        st.subheader("Summary Statistics")
-        st.write(movies_df.describe())
-
-        
-        st.subheader("Data Analysis")
-        st.image("C:/Users/Malose Matlakala/Documents/UNSUPERVISED LEARNING/PREDICT/Streamlit/Streamlit Figures/movies_published_per_year.png", caption='Movies Published Per Year', use_column_width=True)
-        st.image("C:/Users/Malose Matlakala/Documents/UNSUPERVISED LEARNING/PREDICT/Streamlit/Streamlit Figures/most_popular_genres.png", caption='Most Popular Genres', use_column_width=True)
-        
-
-        # You can add other EDA visualizations and analysis here
-
-    # -------------------------------------------------------------------
+    
 
     # Add code for "About Us" page
-    elif page_selection == "About Us":
+    if page_selection == "About Us":
         st.title("About Us")
 
         # Insert information about your team, project, or organization
@@ -213,6 +228,49 @@ def main():
         """)
 
 
+#--------------------------------------------------------------------------------------------------
+    elif page_selection == "EDA":
+        st.title("Exploratory Data Analysis (EDA)")
+
+        # Display summary statistics or any other EDA you want to show
+        #st.subheader("Summary Statistics")
+        #st.write(movies_df.describe())
+
+        st.subheader("Interactive Movie Filter")
+
+        # Sidebar - Interactive Filters
+        st.sidebar.title("Filter Options")
+
+        # Filter by Genre
+        genre_filter = st.sidebar.multiselect("Filter by Genre", movies_df['genres'].unique())
+
+        # Filter by Rating
+        min_rating, max_rating = st.sidebar.slider("Filter by Rating", min_value=0.0, max_value=5.0, value=(0.0, 5.0))
+
+        # Filter by Release Year
+        #min_year, max_year = st.sidebar.slider("Filter by Release Year", min_value=int(movies_df['year'].min()), max_value=int(movies_df['year'].max()), value=(int(movies_df['year'].min()), int(movies_df['year'].max())))
+        # Get the range of the release years
+        min_year, max_year = int(movies_df['year'].min()), int(movies_df['year'].max())
+
+        # Filter by Release Year
+        min_year, max_year = st.sidebar.slider("Filter by Release Year", min_value=min_year, max_value=max_year, value=(min_year, max_year))
+        
+        # Apply filters to the DataFrame
+        filtered_movies = movies_df[
+            (movies_df['genres'].isin(genre_filter)) &
+            (movies_df['rating'] >= min_rating) & (movies_df['rating'] <= max_rating) &
+            (movies_df['year'] >= min_year) & (movies_df['year'] <= max_year)
+        ]
+
+        # Display the filtered movie results
+        st.dataframe(filtered_movies)
+
+        st.image('resources/imgs/EDA1.jpg',width=600)
+        st.image('resources/imgs/EDA2.jpg',width=600)
+
+        # You can add other EDA visualizations and analysis here
+
+    # -------------------------------------------------------------------
 
 
 
